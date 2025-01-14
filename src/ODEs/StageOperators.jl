@@ -88,6 +88,8 @@ of the ODE is to be evaluated.
 struct LinearStageOperator <: StageOperator
   J::AbstractMatrix
   r::AbstractVector
+  ws::Tuple{Vararg{Real}}
+  usx::Tuple{Vararg{AbstractVector}}
   reuse::Bool
 end
 
@@ -103,7 +105,7 @@ function LinearStageOperator(
     jacobian!(J, odeop, tx, usx, ws, odeopcache)
   end
 
-  LinearStageOperator(J, r, reuse)
+  LinearStageOperator(J, r, ws, usx, reuse)
 end
 
 # NonlinearOperator interface
@@ -277,12 +279,12 @@ function Algebra.solve!(
 )
   if !lop.reuse
     J = lop.J
-    numerical_setup!(ns, J)
+    numerical_setup!(ns, J) # passing usx and ws
   end
 
   r = lop.r
   rmul!(r, -1)
-
+  
   solve!(x, ns, r)
   ns
 end
